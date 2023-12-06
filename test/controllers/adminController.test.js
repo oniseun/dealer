@@ -1,73 +1,83 @@
-const chai = require('chai');
-const sinon = require('sinon');
-const adminController = require('../../src/controllers/adminController');
-const adminService = require('../../src/services/adminService');
+const { getBestProfession, getBestClients } = require('../../src/controllers/adminController');
+const { getBestProfessionService, getBestClientsService } = require('../../src/services/adminService');
 
-const expect = chai.expect;
+jest.mock('../../src/services/adminService');
 
-describe('Admin Controller Tests', () => {
+describe('adminController', () => {
   describe('getBestProfession', () => {
     it('should return the best profession', async () => {
-      const req = { query: { start: '2023-01-01', end: '2023-12-31' } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+      const start = '2023-01-01';
+      const end = '2023-12-31';
+      const mockProfessionResult = { profession: 'Engineer', totalEarnings: 100 };
 
-      const fakeBestProfession = { profession: 'Developer', totalEarnings: 5000 };
+      getBestProfessionService.mockResolvedValue(mockProfessionResult);
 
-      sinon.stub(adminService, 'getBestProfessionService').resolves(fakeBestProfession);
+      const req = { query: { start, end } };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
 
-      await adminController.getBestProfession(req, res);
+      await getBestProfession(req, res);
 
-      expect(res.status.calledWith(200)).to.be.true;
-      expect(res.json.calledWith(fakeBestProfession)).to.be.true;
-
-      adminService.getBestProfessionService.restore();
+      expect(getBestProfessionService).toHaveBeenCalledWith(start, end);
+      expect(res.json).toHaveBeenCalledWith(mockProfessionResult);
     });
 
-    it('should handle errors and return 500 status', async () => {
-      const req = { query: { start: '2023-01-01', end: '2023-12-31' } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should return 400 for invalid start date', async () => {
+      const start = 'invalid-date';
+      const end = '2023-12-31';
+      const req = { query: { start, end } };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
 
-      sinon.stub(adminService, 'getBestProfessionService').throws(new Error('Test Error'));
+      await getBestProfession(req, res);
 
-      await adminController.getBestProfession(req, res);
-
-      expect(res.status.calledWith(500)).to.be.true;
-
-      adminService.getBestProfessionService.restore();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Invalid input. Both start and end dates must be valid.' });
     });
   });
 
   describe('getBestClients', () => {
     it('should return the best clients', async () => {
-      const req = { query: { start: '2023-01-01', end: '2023-12-31', limit: 2 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
-
-      const fakeBestClients = [
-        { id: 1, fullName: 'John Doe', paid: 2000 },
-        { id: 2, fullName: 'Jane Doe', paid: 1500 },
+      const start = '2023-01-01';
+      const end = '2023-12-31';
+      const limit = '5';
+      const mockClientsResult = [
+        { id: 1, fullName: 'John Doe', paid: 150 },
+        // Add more mocked client data as needed
       ];
 
-      sinon.stub(adminService, 'getBestClientsService').resolves(fakeBestClients);
+      getBestClientsService.mockResolvedValue(mockClientsResult);
 
-      await adminController.getBestClients(req, res);
+      const req = { query: { start, end, limit } };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
 
-      expect(res.status.calledWith(200)).to.be.true;
-      expect(res.json.calledWith(fakeBestClients)).to.be.true;
+      await getBestClients(req, res);
 
-      adminService.getBestClientsService.restore();
+      expect(getBestClientsService).toHaveBeenCalledWith(start, end, limit);
+      expect(res.json).toHaveBeenCalledWith(mockClientsResult);
     });
 
-    it('should handle errors and return 500 status', async () => {
-      const req = { query: { start: '2023-01-01', end: '2023-12-31', limit: 2 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should return 400 for invalid limit', async () => {
+      const start = '2023-01-01';
+      const end = '2023-12-31';
+      const limit = 'invalid-limit';
+      const req = { query: { start, end, limit } };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
 
-      sinon.stub(adminService, 'getBestClientsService').throws(new Error('Test Error'));
+      await getBestClients(req, res);
 
-      await adminController.getBestClients(req, res);
-
-      expect(res.status.calledWith(500)).to.be.true;
-
-      adminService.getBestClientsService.restore();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Invalid input. Both start and end dates must be valid, and limit must be a number.' });
     });
   });
 });
