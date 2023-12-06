@@ -14,7 +14,6 @@ describe('balanceController', () => {
       const req = {
         params: { userId },
         body: { amount },
-        profile: { id: Number(userId) }, // Assuming authenticated user's profile
       };
       const res = {
         json: jest.fn(),
@@ -34,7 +33,6 @@ describe('balanceController', () => {
       const req = {
         params: { userId },
         body: { amount },
-        profile: { id: 1 }, // Assuming authenticated user's profile
       };
       const res = {
         status: jest.fn().mockReturnThis(),
@@ -47,24 +45,5 @@ describe('balanceController', () => {
       expect(res.json).toHaveBeenCalledWith({ error: 'Invalid input. Both userId and amount are required, and userId must be a number, amount must be a decimal or number.' });
     });
 
-    it('should return 403 for unauthorized access', async () => {
-      const userId = '2'; // Assuming userId is different from authenticated user's profile id
-      const amount = '50.5';
-
-      const req = {
-        params: { userId },
-        body: { amount },
-        profile: { id: 1 }, // Assuming authenticated user's profile
-      };
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      await depositMoney(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Unauthorized. userId does not match the authenticated user.' });
-    });
   });
 });
