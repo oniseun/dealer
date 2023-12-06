@@ -1,6 +1,5 @@
 // src/app.js
 const express = require('express');
-//const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -12,8 +11,6 @@ const jobRoutes = require('./routes/jobRoutes');
 const balanceRoutes = require('./routes/balanceRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const app = express();
-
-//app.use(bodyParser.json());
 
 app.use(express.json({limit: '20mb'}));
 app.use(helmet())
@@ -33,9 +30,9 @@ app.set('models', sequelize.models);
 const swaggerOptions = {
     swaggerDefinition: {
       info: {
-        title: 'Your API Documentation',
+        title: 'DEEL BACKEND TASK',
         version: '1.0.0',
-        description: 'API documentation for your Node.js app',
+        description: 'API documentation for DEEL BACKEND TASK',
       },
     },
     apis: ['./src/routes/*.js'], // Path to the files containing Swagger annotations
