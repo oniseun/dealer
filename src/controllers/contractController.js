@@ -3,6 +3,11 @@ const { getContractByIdService, getContractsService } = require('../services/con
 const getContractById = async (req, res) => {
   const { id } = req.params;
 
+  // Validate input
+  if (!id || isNaN(Number(id))) {
+    return res.status(400).json({ error: 'Invalid input. Contract ID must be a number.' });
+  }
+
   try {
     const contract = await getContractByIdService(req.profile.id, id);
 
