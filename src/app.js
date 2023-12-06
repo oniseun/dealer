@@ -4,6 +4,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const { sequelize } = require('./model');
 const contractRoutes = require('./routes/contractRoutes');
 const jobRoutes = require('./routes/jobRoutes');
@@ -26,6 +28,21 @@ const logger = morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HT
 app.use(logger)
 app.set('sequelize', sequelize);
 app.set('models', sequelize.models);
+
+// Swagger configuration
+const swaggerOptions = {
+    swaggerDefinition: {
+      info: {
+        title: 'Your API Documentation',
+        version: '1.0.0',
+        description: 'API documentation for your Node.js app',
+      },
+    },
+    apis: ['./src/routes/*.js'], // Path to the files containing Swagger annotations
+  };
+  
+  const swaggerSpec = swaggerJSDoc(swaggerOptions);
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/contracts', contractRoutes);
 app.use('/jobs', jobRoutes);
