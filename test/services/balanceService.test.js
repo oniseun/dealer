@@ -1,7 +1,8 @@
 
 
 const { depositMoneyService } = require('../../src/services/balanceService');
-const { models: { Profile, Job, Contract }, sequelize } = require('../../src/models');
+const { models: { Profile, Job, Contract } } = require('../../src/models');
+const { Op } = require('sequelize');
 
 // Mock Sequelize functions
 jest.mock('../../src/models', () => {
@@ -65,7 +66,7 @@ describe('depositMoneyService', () => {
     });
     expect(Job.sum).toHaveBeenCalledWith('price', {
       where: {
-        paid: null,
+        [Op.or]: [{paid: false}, {paid: {[Op.is]: null}}],
       },
       include: [
         {

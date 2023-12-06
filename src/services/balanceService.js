@@ -1,4 +1,5 @@
 const { Profile, Job, Contract } = require('../models').models;
+const { Op } = require('sequelize');
 
 const depositMoneyService = async (userId, amount) => {
     try {
@@ -10,7 +11,7 @@ const depositMoneyService = async (userId, amount) => {
   
       const unpaidJobs = await Job.sum('price', {
         where: {
-            paid: null
+            [Op.or]: [{paid: false}, {paid: {[Op.is]: null}}],
         },
         include: [
             {
