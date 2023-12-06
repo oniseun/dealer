@@ -38,7 +38,7 @@ const router = express.Router();
  *       500:
  *         description: Internal Server Error
  */
-router.get('/contracts/:id', getProfile, getContractById);
+router.get('/:id', getProfile, getContractById);
 
 /**
  * @swagger
@@ -69,7 +69,7 @@ router.get('/contracts/:id', getProfile, getContractById);
  *       500:
  *         description: Internal Server Error
  */
-router.get('/contracts', getProfile, getContracts);
+router.get('/', getProfile, getContracts);
 
 
 module.exports = router;

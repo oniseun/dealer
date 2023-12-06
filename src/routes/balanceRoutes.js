@@ -52,7 +52,7 @@ const router = express.Router();
  *       500:
  *         description: Internal Server Error
  */
-router.post('/balances/deposit/:userId', getProfile, depositMoney);
+router.post('/deposit/:userId', getProfile, depositMoney);
 
 
 module.exports = router;

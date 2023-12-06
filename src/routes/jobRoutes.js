@@ -32,7 +32,7 @@ const router = express.Router();
  *       500:
  *         description: Internal Server Error
  */
-router.get('/jobs/unpaid', getProfile, getUnpaidJobs);
+router.get('/unpaid', getProfile, getUnpaidJobs);
 
 
 
@@ -75,7 +75,7 @@ router.get('/jobs/unpaid', getProfile, getUnpaidJobs);
  *       500:
  *         description: Internal Server Error
  */
-router.post('/jobs/:job_id/pay', getProfile, payForJob);
+router.post('/:job_id/pay', getProfile, payForJob);
 
 
 module.exports = router;
