@@ -18,17 +18,15 @@ const getBestProfessionService = async (start, end) => {
           },
         ],
         where: { paid: true, createdAt: { [Op.between]: [start, end] } },
+        raw: true
       });
-  
       if (!bestProfession || bestProfession.length === 0) {
         throw new Error('No data found');
       }
-      
-        const best = bestProfession.shift().get({ plain: true });
 
       return {
-        profession: best.Contract.Contractor.profession,
-        totalEarnings: best.total,
+        profession: bestProfession[0]['Contract.Contractor.profession'],
+        totalEarnings: bestProfession[0].total,
       };
     } catch (error) {
       console.error(error);

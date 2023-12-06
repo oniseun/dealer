@@ -39,7 +39,7 @@ const depositMoneyService = async (userId, amount) => {
       return { message: 'Deposit successful' };
     } catch (error) {
       console.error(error);
-      throw new Error('Error processing deposit');
+      throw error;
     }
   };
   

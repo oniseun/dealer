@@ -67,14 +67,14 @@ const payForJobService = async (clientId, job_id) => {
           } catch (error) {
             await transaction.rollback();
             console.error(error);
-            throw new Error('Internal Server Error');
+            throw new Error(error);
           }
         } else {
             throw new Error('Insufficient funds');
         }
       } catch (error) {
         console.error(error);
-        throw new Error('Error processing job payment');
+        throw error;
       }
   };
   
