@@ -1,17 +1,15 @@
-// src/app.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const { sequelize } = require('./model');
 const contractRoutes = require('./routes/contractRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const balanceRoutes = require('./routes/balanceRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const { models, sequelize  } = require('../src/models');
 const app = express();
-
 app.use(express.json({limit: '20mb'}));
 app.use(helmet())
 app.use(cors({
@@ -24,7 +22,7 @@ morgan.token('payload', (req) => `${JSON.stringify(req.params)} - ${JSON.stringi
 const logger = morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" ":payload"')
 app.use(logger)
 app.set('sequelize', sequelize);
-app.set('models', sequelize.models);
+app.set('models', models);
 
 // Swagger configuration
 const swaggerOptions = {
