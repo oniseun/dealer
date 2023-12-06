@@ -1,83 +1,88 @@
-const chai = require('chai');
-const sinon = require('sinon');
-const contractController = require('../../src/controllers/contractController');
-const contractService = require('../../src/services/contractService');
+const { getContractById, getContracts } = require('../../src/controllers/contractController');
+const { getContractByIdService, getContractsService } = require('../../src/services/contractService');
 
-const expect = chai.expect;
+jest.mock('../../src/services/contractService');
 
-describe('Contract Controller Tests', () => {
+describe('contractController', () => {
   describe('getContractById', () => {
-    it('should get a contract by ID', async () => {
-      const req = { params: { id: 1 }, profile: { id: 1 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should get contract by ID successfully', async () => {
+      const id = '1';
 
-      const fakeContract = { id: 1, terms: 'Sample terms' };
+      getContractByIdService.mockResolvedValue({ id: 1 });
 
-      sinon.stub(contractService, 'getContractByIdService').resolves(fakeContract);
+      const req = {
+        params: { id },
+        profile: { id: 1 }, // Assuming authenticated user's profile
+      };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
 
-      await contractController.getContractById(req, res);
+      await getContractById(req, res);
 
-      expect(res.status.calledWith(200)).to.be.true;
-      expect(res.json.calledWith(fakeContract)).to.be.true;
-
-      contractService.getContractByIdService.restore();
+      expect(getContractByIdService).toHaveBeenCalledWith(req.profile.id, id);
+      expect(res.json).toHaveBeenCalledWith({ id: 1, });
     });
 
-    it('should handle contract not found', async () => {
-      const req = { params: { id: 2 }, profile: { id: 1 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should return 404 for non-existing contract', async () => {
+      const id = '2';
 
-      sinon.stub(contractService, 'getContractByIdService').resolves(null);
+      getContractByIdService.mockResolvedValue(null);
 
-      await contractController.getContractById(req, res);
+      const req = {
+        params: { id },
+        profile: { id: 1 }, // Assuming authenticated user's profile
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        end: jest.fn(),
+      };
 
-      expect(res.status.calledWith(404)).to.be.true;
+      await getContractById(req, res);
 
-      contractService.getContractByIdService.restore();
+      expect(getContractByIdService).toHaveBeenCalledWith(req.profile.id, id);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.end).toHaveBeenCalled();
     });
 
-    it('should handle errors and return 500 status', async () => {
-      const req = { params: { id: 1 }, profile: { id: 1 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should return 400 for invalid input', async () => {
+      const id = 'invalid-id';
 
-      sinon.stub(contractService, 'getContractByIdService').throws(new Error('Test Error'));
+      const req = {
+        params: { id },
+        profile: { id: 1 }, // Assuming authenticated user's profile
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
 
-      await contractController.getContractById(req, res);
+      await getContractById(req, res);
 
-      expect(res.status.calledWith(500)).to.be.true;
-
-      contractService.getContractByIdService.restore();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Invalid input. Contract ID must be a number.' });
     });
+
   });
 
   describe('getContracts', () => {
-    it('should get contracts for a user', async () => {
-      const req = { profile: { id: 1 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should get contracts successfully', async () => {
+      getContractsService.mockResolvedValue([{ id: 1, }, ]);
 
-      const fakeContracts = [{ id: 1, terms: 'Sample terms' }];
+      const req = {
+        profile: { id: 1 }, // Assuming authenticated user's profile
+      };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
 
-      sinon.stub(contractService, 'getContractsService').resolves(fakeContracts);
+      await getContracts(req, res);
 
-      await contractController.getContracts(req, res);
-
-      expect(res.status.calledWith(200)).to.be.true;
-      expect(res.json.calledWith(fakeContracts)).to.be.true;
-
-      contractService.getContractsService.restore();
+      expect(getContractsService).toHaveBeenCalledWith(req.profile.id);
+      expect(res.json).toHaveBeenCalledWith([{ id: 1, }, ]);
     });
 
-    it('should handle errors and return 500 status', async () => {
-      const req = { profile: { id: 1 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
-
-      sinon.stub(contractService, 'getContractsService').throws(new Error('Test Error'));
-
-      await contractController.getContracts(req, res);
-
-      expect(res.status.calledWith(500)).to.be.true;
-
-      contractService.getContractsService.restore();
-    });
   });
 });
