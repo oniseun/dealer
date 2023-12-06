@@ -14,6 +14,11 @@ const getUnpaidJobs = async (req, res) => {
 const payForJob = async (req, res) => {
   const { job_id } = req.params;
 
+  // Validate input
+  if (!job_id || isNaN(Number(job_id))) {
+    return res.status(400).json({ error: 'Invalid input. Job ID must be a number.' });
+  }
+
   try {
     await payForJobService(req.profile.id, job_id);
 
