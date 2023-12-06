@@ -1,37 +1,70 @@
-const chai = require('chai');
-const sinon = require('sinon');
-const balanceController = require('../../src/controllers/balanceController');
-const balanceService = require('../../src/services/balanceService');
+const { depositMoney } = require('../../src/controllers/balanceController');
+const { depositMoneyService } = require('../../src/services/balanceService');
 
-const expect = chai.expect;
+jest.mock('../../src/services/balanceService');
 
-describe('Balance Controller Tests', () => {
+describe('balanceController', () => {
   describe('depositMoney', () => {
-    it('should deposit money for a user', async () => {
-      const req = { params: { userId: 1 }, body: { amount: 50 }, profile: { id: 1 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should deposit money successfully', async () => {
+      const userId = '1';
+      const amount = '50.5';
 
-      sinon.stub(balanceService, 'depositMoneyService').resolves({ message: 'Deposit successful' });
+      depositMoneyService.mockResolvedValue();
 
-      await balanceController.depositMoney(req, res);
+      const req = {
+        params: { userId },
+        body: { amount },
+        profile: { id: Number(userId) }, // Assuming authenticated user's profile
+      };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
 
-      expect(res.status.calledWith(200)).to.be.true;
-      expect(res.json.calledWith({ message: 'Deposit successful' })).to.be.true;
+      await depositMoney(req, res);
 
-      balanceService.depositMoneyService.restore();
+      expect(depositMoneyService).toHaveBeenCalledWith(userId, amount);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Deposit successful' });
     });
 
-    it('should handle errors and return 500 status', async () => {
-      const req = { params: { userId: 1 }, body: { amount: 50 }, profile: { id: 1 } };
-      const res = { json: sinon.spy(), status: sinon.stub().returnsThis() };
+    it('should return 400 for invalid input', async () => {
+      const userId = 'invalid-user-id';
+      const amount = 'invalid-amount';
 
-      sinon.stub(balanceService, 'depositMoneyService').throws(new Error('Test Error'));
+      const req = {
+        params: { userId },
+        body: { amount },
+        profile: { id: 1 }, // Assuming authenticated user's profile
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
 
-      await balanceController.depositMoney(req, res);
+      await depositMoney(req, res);
 
-      expect(res.status.calledWith(500)).to.be.true;
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Invalid input. Both userId and amount are required, and userId must be a number, amount must be a decimal or number.' });
+    });
 
-      balanceService.depositMoneyService.restore();
+    it('should return 403 for unauthorized access', async () => {
+      const userId = '2'; // Assuming userId is different from authenticated user's profile id
+      const amount = '50.5';
+
+      const req = {
+        params: { userId },
+        body: { amount },
+        profile: { id: 1 }, // Assuming authenticated user's profile
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await depositMoney(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Unauthorized. userId does not match the authenticated user.' });
     });
   });
 });
