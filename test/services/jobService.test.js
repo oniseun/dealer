@@ -1,6 +1,7 @@
 const { getUnpaidJobsService, payForJobService } = require('./jobService');
 const { models: { Job, Contract, Profile }, sequelize } = require('../models');
 
+describe('contractService', () => {
 // Mock Sequelize functions
 jest.mock('../models', () => {
   const SequelizeMock = require('sequelize-mock');
@@ -179,4 +180,6 @@ describe('payForJobService', () => {
 
     await expect(payForJobService(clientId, jobId)).rejects.toThrow('Error processing job payment');
   });
+});
+
 });
