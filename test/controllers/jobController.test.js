@@ -6,7 +6,7 @@ jest.mock('../../src/services/jobService');
 describe('jobController', () => {
   describe('getUnpaidJobs', () => {
     it('should get unpaid jobs successfully', async () => {
-      const unpaidJobs = [{ id: 1, /* other job properties */ }, /* other jobs */];
+      const unpaidJobs = [{ id: 1, },];
 
       getUnpaidJobsService.mockResolvedValue(unpaidJobs);
 
@@ -64,6 +64,5 @@ describe('jobController', () => {
       expect(res.json).toHaveBeenCalledWith({ error: 'Invalid input. Job ID must be a number.' });
     });
 
-    // ... (similar tests for other scenarios)
   });
 });

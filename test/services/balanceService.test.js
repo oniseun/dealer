@@ -1,48 +1,125 @@
-const chai = require('chai');
-const sinon = require('sinon');
-const balanceService = require('../../src/services/balanceService');
-const { Profile } = require('../../src/models').models;
 
-const expect = chai.expect;
 
-describe('Balance Service Tests', () => {
-  describe('depositMoneyService', () => {
-    it('should deposit money for a user', async () => {
-      const fakeProfile = { id: 1, balance: 100 };
-      sinon.stub(Profile, 'findOne').resolves(fakeProfile);
-      sinon.stub(Profile, 'update').resolves([1]);
+const { depositMoneyService } = require('../../src/services/balanceService');
+const { models: { Profile, Job, Contract }, sequelize } = require('../../src/models');
 
-      const result = await balanceService.depositMoneyService(1, 50);
-
-      expect(result.message).to.equal('Deposit successful');
-
-      Profile.findOne.restore();
-      Profile.update.restore();
+// Mock Sequelize functions
+jest.mock('../../src/models', () => {
+    const SequelizeMock = require('sequelize-mock');
+    const dbMock = new SequelizeMock();
+  
+    const ProfileMock = dbMock.define('Profile', {
+      id: 1,
+      type: 'client',
+      balance: 100,
     });
-
-    it('should handle exceeding deposit limit', async () => {
-      const fakeProfile = { id: 1, balance: 100, type: 'client' };
-      sinon.stub(Profile, 'findOne').resolves(fakeProfile);
-
-      try {
-        await balanceService.depositMoneyService(1, 30);
-      } catch (error) {
-        expect(error.message).to.equal('Exceeds deposit limit');
-      }
-
-      Profile.findOne.restore();
+  
+    const ContractMock = dbMock.define('Contract', {
+      id: 1,
+      status: 'in_progress',
     });
+  
+    const JobMock = dbMock.define('Job', {
+      price: 50,
+    });
+  
+    // Associations
+    ProfileMock.hasMany(ContractMock, { as: 'Client', foreignKey: 'ClientId' });
+    ContractMock.belongsTo(ProfileMock, { as: 'Client' });
+    ContractMock.hasMany(JobMock);
+    JobMock.belongsTo(ContractMock);
+  
+    return {
+      models: {
+        Profile: ProfileMock,
+        Contract: ContractMock,
+        Job: JobMock,
+      },
+      sequelize: dbMock,
+    };
+  });
 
-    it('should throw an error on database error', async () => {
-      sinon.stub(Profile, 'findOne').throws(new Error('Test Error'));
+describe('balanceService', () => {
 
-      try {
-        await balanceService.depositMoneyService(1, 50);
-      } catch (error) {
-        expect(error.message).to.equal('Test Error');
-      }
+describe('depositMoneyService', () => {
+  it('should deposit money into a client\'s account successfully', async () => {
+    const userId = 1;
+    const amount = 10;
 
-      Profile.findOne.restore();
+    // Mock data
+    const clientData = {
+      id: userId,
+      type: 'client',
+      balance: 100,
+      update: jest.fn().mockResolvedValue(true)
+    };
+
+    // Mock Sequelize findOne and sum functions
+    Profile.findOne = jest.fn().mockResolvedValue(clientData);
+    Job.sum = jest.fn().mockResolvedValue(50);
+    const result = await depositMoneyService(userId, amount);
+
+    expect(result).toEqual({ message: 'Deposit successful' });
+    expect(Profile.findOne).toHaveBeenCalledWith({
+      where: { id: userId, type: 'client' },
+    });
+    expect(Job.sum).toHaveBeenCalledWith('price', {
+      where: {
+        paid: null,
+      },
+      include: [
+        {
+          model: Contract,
+          where: { status: 'in_progress' },
+          include: [
+            {
+              model: Profile,
+              as: 'Client',
+              where: { id: userId },
+            },
+          ],
+        },
+      ],
     });
   });
+
+  it('should handle errors during deposit', async () => {
+    const userId = 1;
+    const amount = 30;
+
+    // Mock data
+    const clientData = {
+      id: userId,
+      type: 'client',
+      balance: 100,
+    };
+
+    // Mock Sequelize findOne function to throw an error
+    Profile.findOne = jest.fn().mockRejectedValue(new Error('Database error'));
+
+    await expect(depositMoneyService(userId, amount)).rejects.toThrow('Database error');
+  });
+
+  it('should handle deposit exceeding 25% of total jobs to pay', async () => {
+    const userId = 1;
+    const amount = 30;
+
+    // Mock data
+    const clientData = {
+      id: userId,
+      type: 'client',
+      balance: 100,
+      update: jest.fn().mockResolvedValue(true)
+    };
+
+    // Mock Sequelize findOne and sum functions
+    Profile.findOne = jest.fn().mockResolvedValue(clientData);
+    Job.sum = jest.fn().mockResolvedValue(50);
+
+    await expect(depositMoneyService(userId, amount)).rejects.toThrow(new Error('Deposit exceeds 25% of total jobs to pay: 12.5'));
+  });
 });
+
+});
+
+
