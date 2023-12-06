@@ -44,7 +44,7 @@ const router = express.Router();
  *       500:
  *         description: Internal Server Error
  */
-router.get('/best-profession', getProfile, getBestProfession);
+router.get('/best-profession', getBestProfession);
 
 /**
  * @swagger
@@ -98,7 +98,7 @@ router.get('/best-profession', getProfile, getBestProfession);
  *       500:
  *         description: Internal Server Error
  */
-router.get('/best-clients', getProfile, getBestClients);
+router.get('/best-clients', getBestClients);
 
 
 module.exports = router;
