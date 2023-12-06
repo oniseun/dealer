@@ -15,7 +15,7 @@ const payForJob = async (req, res) => {
   const { job_id } = req.params;
 
   try {
-    await payForJobService(job_id);
+    await payForJobService(req.profile.id, job_id);
 
     res.json({ message: 'Payment successful' });
   } catch (error) {
