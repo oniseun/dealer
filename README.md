@@ -96,3 +96,19 @@ It would be great for example if you'd write some unit test / simple frontend de
 When you have finished the assignment, zip your repo (make sure to include .git folder) and send us the zip.
 
 Thank you and good luck! 🙏
+
+## How to use 
+
+
+1.  `nvm use` to pick up the node version used
+
+2.  `npm install` to install all dependencies
+
+
+3. Next, `npm run seed` will seed the local SQLite database. **Warning: This will drop the database if it exists**. The database lives in a local file `database.sqlite3`.
+
+4. Then run `npm start` which should start both the server
+
+5. Head to swagger ui `http://localhost:3001/api-docs/#/` to play around with the api 
+
+6. Head to `http://localhost:3001/` to make requests to the endpoints 
